@@ -49,62 +49,60 @@ func GetTasks(w http.ResponseWriter, r *http.Request) {
 		tasks = append(tasks, task)
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tasks)
 }
 
 func GetTaskByID(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id, err := primitive.ObjectIDFromHex(params["id"])
+	taskID, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		http.Error(w, "Invalid task ID", http.StatusBadRequest)
 		return
 	}
 
 	var task model.Task
-	err = util.DB.Collection("tasks").FindOne(context.TODO(), bson.M{"_id": id}).Decode(&task)
+	err = util.DB.Collection("tasks").FindOne(context.TODO(), bson.M{"_id": taskID}).Decode(&task)
 	if err != nil {
 		http.Error(w, "Task not found", http.StatusNotFound)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(task)
 }
 
 func CompleteTask(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id, err := primitive.ObjectIDFromHex(params["id"])
+	taskID, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		http.Error(w, "Invalid task ID", http.StatusBadRequest)
 		return
 	}
 
 	update := bson.M{"$set": bson.M{"completed": true}}
-	_, err = util.DB.Collection("tasks").UpdateOne(context.TODO(), bson.M{"_id": id}, update)
+	_, err = util.DB.Collection("tasks").UpdateOne(context.TODO(), bson.M{"_id": taskID}, update)
 	if err != nil {
 		http.Error(w, "Failed to update task", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Task marked as completed"))
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func DeleteTask(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	id, err := primitive.ObjectIDFromHex(params["id"])
+	taskID, err := primitive.ObjectIDFromHex(params["id"])
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		http.Error(w, "Invalid task ID", http.StatusBadRequest)
 		return
 	}
 
-	_, err = util.DB.Collection("tasks").DeleteOne(context.TODO(), bson.M{"_id": id})
+	_, err = util.DB.Collection("tasks").DeleteOne(context.TODO(), bson.M{"_id": taskID})
 	if err != nil {
 		http.Error(w, "Failed to delete task", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Task deleted successfully"))
+	w.WriteHeader(http.StatusNoContent)
 }

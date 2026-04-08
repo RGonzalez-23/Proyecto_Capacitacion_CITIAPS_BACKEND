@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/controller"
+	"backend/middleware"
 	"backend/util"
 	"log"
 	"net/http"
@@ -31,6 +32,9 @@ func init() {
 
 func main() {
 	r := mux.NewRouter()
+
+	// Aplicar middleware CORS
+	r.Use(middleware.CORSMiddleware)
 
 	r.HandleFunc("/tasks", controller.CreateTask).Methods("POST")
 	r.HandleFunc("/tasks", controller.GetTasks).Methods("GET")

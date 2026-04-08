@@ -33,8 +33,9 @@ func init() {
 func main() {
 	r := mux.NewRouter()
 
-	// Aplicar middleware CORS
-	r.Use(middleware.CORSMiddleware)
+	// Nota: envolver el router con el middleware CORS al arrancar el servidor
+	// garantiza que peticiones como OPTIONS reciban los headers CORS aun
+	// cuando el router respondería 405/404 antes de ejecutar middlewares.
 
 	r.HandleFunc("/tasks", controller.CreateTask).Methods("POST")
 	r.HandleFunc("/tasks", controller.GetTasks).Methods("GET")
@@ -43,7 +44,8 @@ func main() {
 	r.HandleFunc("/tasks/{id}", controller.DeleteTask).Methods("DELETE")
 
 	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	handler := middleware.CORSMiddleware(r)
+	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatalf("Could not start server: %s\n", err.Error())
 	}
 }

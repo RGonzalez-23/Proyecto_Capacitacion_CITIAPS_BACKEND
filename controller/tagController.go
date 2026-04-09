@@ -6,36 +6,63 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// CreateTag crea un nuevo tag
+// CreateTag crea un nuevo tag - PROTEGIDO CONTRA INYECCIÓN NOSQL
 // POST /tags
 func CreateTag(w http.ResponseWriter, r *http.Request) {
 	var tagReq model.TagRequest
 	if err := json.NewDecoder(r.Body).Decode(&tagReq); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 
-	// Validar nombre
-	tagReq.Name = strings.TrimSpace(tagReq.Name)
+	// Sanitizar entrada
+	tagReq.Name = util.SanitizeInput(tagReq.Name)
 	if tagReq.Name == "" {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Tag name cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	// Verificar que el tag no exista (case-insensitive)
-	existing := util.DB.Collection("tags").FindOne(context.TODO(), bson.M{
-		"name": bson.M{"$regex": "^" + tagReq.Name + "$", "$options": "i"},
+	// Validar longitud mínima
+	if len(tagReq.Name) < 2 {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		http.Error(w, "Tag name must be at least 2 characters", http.StatusBadRequest)
+		return
+	}
+
+	// Sanitizar color si existe
+	if tagReq.Color != "" {
+		tagReq.Color = util.SanitizeInput(tagReq.Color)
+		// Validar que sea un color hexadecimal válido (opcional)
+		if !isValidColorHex(tagReq.Color) && tagReq.Color != "" {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			http.Error(w, "Invalid color format", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Verificar que el tag no exista usando collation (case-insensitive seguro)
+	opts := options.FindOne().SetCollation(&options.Collation{
+		Locale:   "en",
+		Strength: 2, // case-insensitive
 	})
 
+	existing := util.DB.Collection("tags").FindOne(context.TODO(),
+		bson.M{"name": tagReq.Name},
+		opts,
+	)
+
 	if existing.Err() == nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Tag already exists", http.StatusConflict)
 		return
 	}
@@ -49,6 +76,7 @@ func CreateTag(w http.ResponseWriter, r *http.Request) {
 
 	_, err := util.DB.Collection("tags").InsertOne(context.TODO(), tag)
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Failed to create tag", http.StatusInternalServerError)
 		return
 	}
@@ -56,6 +84,35 @@ func CreateTag(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(tag)
+}
+
+// isValidColorHex valida que una cadena sea un color hexadecimal válido
+func isValidColorHex(color string) bool {
+	if len(color) == 0 {
+		return true // Empty color is optional
+	}
+
+	// Validar formato #RRGGBB o RRGGBB
+	if len(color) == 7 && color[0] == '#' {
+		return isHexColor(color[1:])
+	}
+	if len(color) == 6 {
+		return isHexColor(color)
+	}
+	return false
+}
+
+// isHexColor valida que una cadena sea hexadecimal puro
+func isHexColor(s string) bool {
+	if len(s) != 6 {
+		return false
+	}
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
 }
 
 // GetAllTags obtiene todos los tags disponibles

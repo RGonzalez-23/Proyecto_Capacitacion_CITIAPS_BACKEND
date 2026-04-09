@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// CreateTask crea una nueva tarea con tags
+// CreateTask crea una nueva tarea con tags - PROTEGIDO CONTRA INYECCIÓN NOSQL
 // POST /tasks
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	var taskReq model.TaskRequest
@@ -22,6 +22,10 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+
+	// Sanitizar entrada
+	taskReq.Title = util.SanitizeInput(taskReq.Title)
+	taskReq.Description = util.SanitizeInput(taskReq.Description)
 
 	// Validar título
 	if taskReq.Title == "" {
@@ -51,7 +55,14 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convertir nombres de tags a ObjectIDs
+	// Sanitizar tags
+	if len(taskReq.Tags) > 0 {
+		for i, tag := range taskReq.Tags {
+			taskReq.Tags[i] = util.SanitizeInput(tag)
+		}
+	}
+
+	// Convertir nombres de tags a ObjectIDs - protegido contra NoSQL injection
 	tagIDs, err := util.FindOrCreateTags(taskReq.Tags)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")

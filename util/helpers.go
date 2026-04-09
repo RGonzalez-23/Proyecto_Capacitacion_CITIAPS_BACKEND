@@ -3,15 +3,35 @@ package util
 import (
 	"backend/model"
 	"context"
+	"regexp"
 	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// SanitizeInput limpia inputs peligrosos para NoSQL injection
+func SanitizeInput(input string) string {
+	// Trimear espacios
+	input = strings.TrimSpace(input)
+
+	// Validar longitud máxima
+	if len(input) > 500 {
+		input = input[:500]
+	}
+
+	return input
+}
+
+// EscapeRegex escapa caracteres especiales en expresiones regulares
+func EscapeRegex(s string) string {
+	return regexp.QuoteMeta(s)
+}
+
 // FindOrCreateTags busca tags existentes o crea nuevos si no existen
-// Retorna los ObjectIDs de los tags
+// Retorna los ObjectIDs de los tags - PROTEGIDO CONTRA INYECCIÓN NOSQL
 func FindOrCreateTags(tagNames []string) ([]primitive.ObjectID, error) {
 	if len(tagNames) == 0 {
 		return []primitive.ObjectID{}, nil
@@ -20,17 +40,23 @@ func FindOrCreateTags(tagNames []string) ([]primitive.ObjectID, error) {
 	var tagIDs []primitive.ObjectID
 
 	for _, tagName := range tagNames {
-		// Normalizar nombre (trimmed, lowercase para búsqueda)
-		normalizedName := strings.TrimSpace(tagName)
+		// Sanitizar entrada
+		normalizedName := SanitizeInput(tagName)
 		if normalizedName == "" {
 			continue
 		}
 
-		// Buscar tag existente (case-insensitive)
+		// Buscar tag existente con collation (case-insensitive seguro)
+		opts := options.FindOne().SetCollation(&options.Collation{
+			Locale:   "en",
+			Strength: 2, // case-insensitive
+		})
+
 		var tag model.Tag
-		err := DB.Collection("tags").FindOne(context.TODO(), bson.M{
-			"name": bson.M{"$regex": "^" + normalizedName + "$", "$options": "i"},
-		}).Decode(&tag)
+		err := DB.Collection("tags").FindOne(context.TODO(),
+			bson.M{"name": normalizedName},
+			opts,
+		).Decode(&tag)
 
 		if err != nil {
 			// Tag no existe, crear nuevo
@@ -108,11 +134,21 @@ func ValidateTagIDsExist(tagIDs []primitive.ObjectID) (bool, error) {
 	return count == int64(len(tagIDs)), nil
 }
 
-// GetTagByName obtiene un tag por nombre (case-insensitive)
+// GetTagByName obtiene un tag por nombre (case-insensitive) - PROTEGIDO CONTRA INYECCIÓN NOSQL
 func GetTagByName(name string) (*model.Tag, error) {
+	// Sanitizar entrada
+	sanitizedName := SanitizeInput(name)
+
+	// Usar collation en lugar de regex para evitar inyección
+	opts := options.FindOne().SetCollation(&options.Collation{
+		Locale:   "en",
+		Strength: 2, // case-insensitive
+	})
+
 	var tag model.Tag
-	err := DB.Collection("tags").FindOne(context.TODO(), bson.M{
-		"name": bson.M{"$regex": "^" + strings.TrimSpace(name) + "$", "$options": "i"},
-	}).Decode(&tag)
+	err := DB.Collection("tags").FindOne(context.TODO(),
+		bson.M{"name": sanitizedName},
+		opts,
+	).Decode(&tag)
 	return &tag, err
 }

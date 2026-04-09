@@ -38,19 +38,19 @@ func main() {
 	// cuando el router respondería 405/404 antes de ejecutar middlewares.
 
 	// Task routes
-	r.HandleFunc("/tasks", controller.CreateTask).Methods("POST")
-	r.HandleFunc("/tasks", controller.GetTasks).Methods("GET")
-	r.HandleFunc("/tasks/{id}", controller.GetTaskByID).Methods("GET")
-	r.HandleFunc("/tasks/{id}", controller.UpdateTask).Methods("PUT")
-	r.HandleFunc("/tasks/{id}/complete", controller.CompleteTask).Methods("PUT")
-	r.HandleFunc("/tasks/{id}", controller.DeleteTask).Methods("DELETE")
+	r.HandleFunc("/api/tasks", controller.CreateTask).Methods("POST")
+	r.HandleFunc("/api/tasks", controller.GetTasks).Methods("GET")
+	r.HandleFunc("/api/tasks/{id}", controller.GetTaskByID).Methods("GET")
+	r.HandleFunc("/api/tasks/{id}", controller.UpdateTask).Methods("PUT")
+	r.HandleFunc("/api/tasks/{id}/complete", controller.CompleteTask).Methods("PUT")
+	r.HandleFunc("/api/tasks/{id}", controller.DeleteTask).Methods("DELETE")
 
 	// Tag routes
-	r.HandleFunc("/tags", controller.CreateTag).Methods("POST")
-	r.HandleFunc("/tags", controller.GetAllTags).Methods("GET")
-	r.HandleFunc("/tags/{id}", controller.GetTag).Methods("GET")
-	r.HandleFunc("/tags/{id}", controller.DeleteTag).Methods("DELETE")
-	r.HandleFunc("/tags/{id}/tasks", controller.GetTasksByTag).Methods("GET")
+	r.HandleFunc("/api/tags", controller.CreateTag).Methods("POST")
+	r.HandleFunc("/api/tags", controller.GetAllTags).Methods("GET")
+	r.HandleFunc("/api/tags/{id}", controller.GetTag).Methods("GET")
+	r.HandleFunc("/api/tags/{id}", controller.DeleteTag).Methods("DELETE")
+	r.HandleFunc("/api/tags/{id}/tasks", controller.GetTasksByTag).Methods("GET")
 
 	log.Println("Starting server on :8080")
 	handler := middleware.CORSMiddleware(r)

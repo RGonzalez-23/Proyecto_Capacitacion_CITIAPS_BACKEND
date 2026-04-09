@@ -7,7 +7,7 @@ import (
 )
 
 type Tag struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
 	Name      string             `bson:"name" json:"name"`
 	Color     string             `bson:"color,omitempty" json:"color,omitempty"`
 	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`

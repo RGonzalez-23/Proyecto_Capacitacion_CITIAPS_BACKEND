@@ -18,19 +18,43 @@ import (
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	var taskReq model.TaskRequest
 	if err := json.NewDecoder(r.Body).Decode(&taskReq); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 
 	// Validar título
 	if taskReq.Title == "" {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Task title cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	// Validar que el título tenga al menos 3 caracteres
+	if len(taskReq.Title) < 3 {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		http.Error(w, "Task title must be at least 3 characters long", http.StatusBadRequest)
+		return
+	}
+
+	// Validar que el título no sea muy largo (máximo 100 caracteres)
+	if len(taskReq.Title) > 100 {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		http.Error(w, "Task title must not exceed 100 characters", http.StatusBadRequest)
+		return
+	}
+
+	// Validar descripción (máximo 500 caracteres)
+	if len(taskReq.Description) > 500 {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		http.Error(w, "Task description must not exceed 500 characters", http.StatusBadRequest)
 		return
 	}
 
 	// Convertir nombres de tags a ObjectIDs
 	tagIDs, err := util.FindOrCreateTags(taskReq.Tags)
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Failed to process tags", http.StatusInternalServerError)
 		return
 	}
@@ -47,6 +71,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	_, err = util.DB.Collection("tasks").InsertOne(context.TODO(), task)
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		http.Error(w, "Failed to create task", http.StatusInternalServerError)
 		return
 	}

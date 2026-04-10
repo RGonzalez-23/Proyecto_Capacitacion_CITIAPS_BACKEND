@@ -81,6 +81,40 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
 
 **Nota:** Si no proporcionas un archivo `.env`, el servidor usará valores por defecto.
 
+## Configuración de Base de Datos
+
+**Prerequisito:** MongoDB debe estar instalado y ejecutándose en tu equipo.
+
+### Crear la Base de Datos
+
+1. Abre una terminal/PowerShell
+2. Conecta a MongoDB:
+   ```powershell
+   mongosh mongodb://localhost:27017
+   ```
+
+3. Crea la base de datos y colecciones:
+   ```javascript
+   // Cambiar a la base de datos Tasks CITIAPS
+   use tasks_citiaps
+
+   // Crear colección de tareas
+   db.createCollection("tasks")
+
+   // Crear colección de etiquetas
+   db.createCollection("tags")
+
+   // Verificar que se crearon correctamente
+   show collections
+   ```
+
+4. (Opcional) Ver la base de datos creada:
+   ```javascript
+   show databases
+   ```
+
+**Listo:** La base de datos `tasks_citiaps` está lista para usar. Las colecciones se crearán automáticamente con los primeros datos cuando ejecutes la aplicación.
+
 ## Ejecución
 
 Ejecuta el servidor:

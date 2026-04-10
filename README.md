@@ -115,7 +115,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
 
 **Listo:** La base de datos `tasks_citiaps` está lista para usar. Las colecciones se crearán automáticamente con los primeros datos cuando ejecutes la aplicación.
 
-## Ejecución
+## Ejecución en local
 
 Ejecuta el servidor:
 
@@ -137,6 +137,42 @@ El servidor estará disponible en: **http://localhost:8080**
 - `GET /api/tags` - Obtener todas las etiquetas
 - `POST /api/tags` - Crear nueva etiqueta
 - `DELETE /api/tags/:id` - Eliminar etiqueta
+
+## Ejecución con Docker
+
+### Requisitos
+- **Docker** y **Docker Compose** instalados
+
+### Uso
+
+1. Navega a la carpeta donde se clonó o descargó el proyecto:
+
+2. Levanta los contenedores:
+   ```powershell
+   docker-compose up --build
+   ```
+
+3. El servidor estará disponible en: **http://localhost:8080**
+
+4. MongoDB estará disponible en: **localhost:27017**
+
+**Notas:**
+- El contenedor de MongoDB tardará unos segundos en iniciarse
+- El backend esperará a que MongoDB esté listo antes de iniciar
+- Los datos de MongoDB se persisten en un volumen local
+
+### Detener los contenedores
+
+```powershell
+docker-compose down
+```
+
+### Ver logs
+
+```powershell
+docker logs citiaps-backend
+docker logs citiaps-mongodb
+```
 
 ## Características Principales
 

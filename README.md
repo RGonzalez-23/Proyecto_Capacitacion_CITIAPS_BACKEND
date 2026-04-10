@@ -42,7 +42,7 @@ BACKEND/
 
 1. Clona el proyecto o descárgalo
    ```powershell
-   git clone https://github.com/RGonzalez-23/Proyecto_Capacitacion_CITIAPS_BACKEND
+   git clone [url-repositorio]
    ```
 
 2. Descarga las dependencias en la carpeta donde hayas clonado el repositorio:

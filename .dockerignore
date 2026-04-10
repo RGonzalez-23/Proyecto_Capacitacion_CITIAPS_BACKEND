@@ -1,0 +1,7 @@
+.git
+.gitignore
+README.md
+LICENSE
+*.env
+*.env.local
+.DS_Store

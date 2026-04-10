@@ -19,12 +19,19 @@ func init() {
 		log.Println("Warning: Error loading .env file, using system environment variables")
 	}
 
-	// Load environment variables
-	mongoURI := os.Getenv("MONGO_URI")
-	dbName := os.Getenv("DB_NAME")
+	// Load environment variables - Permitir ambos nombres para compatibilidad
+	mongoURI := os.Getenv("MONGODB_URI")
+	if mongoURI == "" {
+		mongoURI = os.Getenv("MONGO_URI")
+	}
+
+	dbName := os.Getenv("MONGODB_DB_NAME")
+	if dbName == "" {
+		dbName = os.Getenv("DB_NAME")
+	}
 
 	if mongoURI == "" || dbName == "" {
-		log.Fatalf("Missing environment variables: MONGO_URI or DB_NAME")
+		log.Fatalf("Missing environment variables: MONGODB_URI/MONGO_URI or MONGODB_DB_NAME/DB_NAME")
 	}
 
 	util.ConnectDB(mongoURI, dbName)

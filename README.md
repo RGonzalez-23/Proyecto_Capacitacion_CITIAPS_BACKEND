@@ -85,7 +85,35 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
 
 **Prerequisito:** MongoDB debe estar instalado y ejecutándose en tu equipo.
 
-### Crear la Base de Datos
+### Crear la Base de Datos (con MongoDB Compass)
+
+1. **Descarga MongoDB Compass** (si no lo tienes):
+   - Ve a [https://www.mongodb.com/products/compass](https://www.mongodb.com/products/compass)
+   - Descarga la versión para Windows
+   - Instala normalmente
+
+2. **Abre MongoDB Compass** y conecta a tu instancia local:
+   - Connection String por defecto: `mongodb://localhost:27017`
+   - Haz clic en "Connect"
+
+3. **Crea la base de datos**:
+   - En el panel izquierdo, haz clic en el botón `+` al lado de "Databases"
+   - Database Name: `citiaps`
+   - Collection Name: `tasks`
+   - Haz clic en "Create Database"
+
+4. **Crea la segunda colección**:
+   - Haz clic derecho en `citiaps` en el panel izquierdo
+   - Selecciona "Create Collection"
+   - Collection Name: `tags`
+   - Haz clic en "Create"
+
+**Listo:** La base de datos `citiaps` está lista con las colecciones `tasks` y `tags`. Los datos se crearán automáticamente cuando ejecutes la aplicación.
+
+### Alternativa: Usar línea de comandos
+
+Si prefieres usar terminal, necesitas instalar MongoDB Shell (mongosh) desde [https://www.mongodb.com/try/download/shell](https://www.mongodb.com/try/download/shell) y luego:
+
 
 1. Abre una terminal/PowerShell
 2. Conecta a MongoDB:
